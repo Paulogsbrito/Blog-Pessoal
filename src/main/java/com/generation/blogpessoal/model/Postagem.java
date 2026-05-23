@@ -39,6 +39,7 @@ public class Postagem {
 	@UpdateTimestamp // Banco de Dados que preenche o campo e o atualiza, no caso da data
 	private LocalDateTime data;
 	
+		
 	
 // metodos construtores 
 	public Long getId() {
