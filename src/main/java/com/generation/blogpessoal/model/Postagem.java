@@ -4,10 +4,13 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -39,7 +42,10 @@ public class Postagem {
 	@UpdateTimestamp // Banco de Dados que preenche o campo e o atualiza, no caso da data
 	private LocalDateTime data;
 	
-		
+	@ManyToOne
+	@JsonIgnoreProperties("postagem")
+	private Tema tema;
+
 	
 // metodos construtores 
 	public Long getId() {
@@ -73,5 +79,15 @@ public class Postagem {
 	public void setData(LocalDateTime data) {
 		this.data = data;
 	}
+
+	public Tema getTema() {
+		return tema;
+	}
+
+	public void setTema(Tema tema) {
+		this.tema = tema;
+	}
+	
+	
 
 }

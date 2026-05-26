@@ -20,66 +20,72 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.blogpessoal.model.Postagem;
 import com.generation.blogpessoal.repository.PostagemRepository;
+import com.generation.blogpessoal.repository.TemaRepository;
 
 import jakarta.validation.Valid;
 
-
-
 @RestController // Receberá requisições compostas por: URL, método HTTP e o Objeto da requisição
-@RequestMapping("/postagens") // mapeia as solicitações para os métodos da classe controladora | define tambem a URL
-@CrossOrigin(origins = "*", allowedHeaders = "*") // indica que a Classe controladora permitirá o recebimento de requisições fora do dominio(Front)
+@RequestMapping("/postagens") // mapeia as solicitações para os métodos da classe controladora | define tambem
+								// a URL
+@CrossOrigin(origins = "*", allowedHeaders = "*") // indica que a Classe controladora permitirá o recebimento de
+													// requisições fora do dominio(Front)
 public class PostagemController {
-	
-	@Autowired // Aqui é aplicada a inversão de controle ou inversão de dependencia =  ele da autonomia á Classe, uma classe que era dependente se torna independente
+
+	@Autowired // Aqui é aplicada a inversão de controle ou inversão de dependencia = ele da
+				// autonomia á Classe, uma classe que era dependente se torna independente
 	private PostagemRepository postagemRepository;
-	
-	//Método GET = DELETE, GET, POST, PUT | GetMapping mapeia tudo verificando o que irá ser executado
+
+	@Autowired
+	private TemaRepository temaRepository;
+
+	// Método GET = DELETE, GET, POST, PUT | GetMapping mapeia tudo verificando o
+	// que irá ser executado
 	@GetMapping
-	public ResponseEntity<List<Postagem>>getAll(){
+	public ResponseEntity<List<Postagem>> getAll() {
 		return ResponseEntity.ok(postagemRepository.findAll());
 	}
-	
+
 	@GetMapping("/{id}")
 	public ResponseEntity<Postagem> getById(@PathVariable Long id) {
-		return postagemRepository.findById(id)
-		.map(resposta -> ResponseEntity.ok(resposta))
-		.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+		return postagemRepository.findById(id).map(resposta -> ResponseEntity.ok(resposta))
+				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
-	
+
 	@GetMapping("/titulo/{titulo}")
 	public ResponseEntity<List<Postagem>> getByTitulo(@PathVariable String titulo) {
 		return ResponseEntity.ok(postagemRepository.findAllByTituloContainingIgnoreCase(titulo));
 	}
-	
-	@PostMapping 
-	public ResponseEntity<Postagem> post (@Valid @RequestBody Postagem postagem){
-		
-		postagem.setId(null);
-		
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(postagemRepository.save(postagem));
+
+	@PostMapping
+	public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem postagem) {
+
+		if (temaRepository.existsById(postagem.getTema().getId())) {
+
+			postagem.setId(null);
+
+			return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
+		}
+
+		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema Não Existe!", null);
+
 	}
-	
+
 	@PutMapping
-	public ResponseEntity<Postagem> put (@Valid @RequestBody Postagem postagem){
+	public ResponseEntity<Postagem> put(@Valid @RequestBody Postagem postagem) {
 		return postagemRepository.findById(postagem.getId())
-				.map(resposta -> ResponseEntity.status(HttpStatus.OK)
-						.body(postagemRepository.save(postagem)))
+				.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(postagemRepository.save(postagem)))
 				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
-		
+
 	@ResponseStatus
 	@DeleteMapping("/{id}")
 	public void delete(@PathVariable Long id) {
 		Optional<Postagem> postagem = postagemRepository.findById(id);
-		
-		if(postagem.isEmpty())
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		
-		postagemRepository.deleteById(id);
-		
-	}
-	
-	
 
+		if (postagem.isEmpty())
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+		postagemRepository.deleteById(id);
+
+	}
 }
